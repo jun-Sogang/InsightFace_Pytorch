@@ -32,7 +32,7 @@ if __name__ == '__main__':
     learner.model.eval()
     print('learner loaded')
     
-    if args.update:
+    if True:
         targets, names = prepare_facebank(conf, learner.model, mtcnn, tta = args.tta)
         print('facebank updated')
     else:

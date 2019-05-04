@@ -20,7 +20,6 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--duration", help="perform detection for how long(in seconds)", default=0, type=int)
     
     args = parser.parse_args()
-    
     conf = get_config(False)
 
     mtcnn = MTCNN()
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         learner.load_state(conf, 'final.pth', True, True)
     learner.model.eval()
     print('learner loaded')
-    
+   
     if args.update:
         targets, names = prepare_facebank(conf, learner.model, mtcnn, tta = args.tta)
         print('facebank updated')
@@ -48,14 +47,15 @@ if __name__ == '__main__':
     
     fps = cap.get(cv2.CAP_PROP_FPS)
     video_writer = cv2.VideoWriter(str(conf.facebank_path/'{}.avi'.format(args.save_name)),
-                                   cv2.VideoWriter_fourcc(*'XVID'), int(fps), (1280,720))
+                                   cv2.VideoWriter_fourcc(*'MJPG'), 30, (1920,1080))
     
     if args.duration != 0:
         i = 0
     
-    while cap.isOpened():
+    while True:
         isSuccess,frame = cap.read()
         if isSuccess:            
+            print('hi')
 #             image = Image.fromarray(frame[...,::-1]) #bgr to rgb
             image = Image.fromarray(frame)
             try:

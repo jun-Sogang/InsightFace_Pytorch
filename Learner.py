@@ -13,6 +13,7 @@ from PIL import Image
 from torchvision import transforms as trans
 import math
 import bcolz
+import torch.nn as nn
 
 class face_learner(object):
     def __init__(self, conf, inference=False):
@@ -79,7 +80,15 @@ class face_learner(object):
             save_path = conf.save_path
         else:
             save_path = conf.model_path            
-        self.model.load_state_dict(torch.load(save_path/'model_{}'.format(fixed_str)))
+        #self.model.load_state_dict(torch.load(save_path/'model_{}'.format(fixed_str)))
+        state_dict = torch.load(save_path / 'model_{}'.format(fixed_str))
+        from collections import OrderedDict
+        new_state_dict = OrderedDict()
+        for k, v in state_dict.items():
+            name = k[7:]
+            new_state_dict[name] = v
+        self.model.load_state_dict(new_state_dict)
+        #
         if not model_only:
             self.head.load_state_dict(torch.load(save_path/'head_{}'.format(fixed_str)))
             self.optimizer.load_state_dict(torch.load(save_path/'optimizer_{}'.format(fixed_str)))
@@ -183,6 +192,11 @@ class face_learner(object):
 
     def train(self, conf, epochs):
         self.model.train()
+        # Using GPU
+        conf.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = nn.DataParallel(self.model,device_ids=[0,1,2,3])
+        self.model.to(conf.device)
+        #
         running_loss = 0.            
         for e in range(epochs):
             print('epoch {} started'.format(e))
